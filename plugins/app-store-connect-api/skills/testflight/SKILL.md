@@ -905,3 +905,14 @@ Use these endpoints to automate testflight tasks within Apple Store Connect.
 - Always authenticate requests using your Apple Store Connect API key (JWT token).
 - Handle rate limiting gracefully, as the Apple Store Connect API enforces quotas.
 - When writing integrations, refer back to the exact schemas for precise payload construction.
+
+## Build and submission state model
+
+Keep these states distinct when auditing a candidate for App Review:
+
+1. The cloud build finished and has a processed build number.
+2. The submit process completed for that build.
+3. The build is attached to the target App Store version.
+4. `Update Review` was submitted.
+
+Use the build and App Store Version relationships to verify each transition; an EAS `finished` status proves only the first state. Before the fourth state, verify the build number is monotonic and single-use, the fix commit is an ancestor of the build revision, and the lockfile passes `npm ci` on the CI Node major. Stop before `Update Review` for explicit account-owner confirmation. See `app-store-review` for the complete rejection-prevention checklist.

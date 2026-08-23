@@ -98,6 +98,7 @@ Before the agent can emit anything better than **NO_GO**, the project must show:
 
 - `android.package` set (reverse-DNS, valid)
 - `versionCode` is a positive integer and incremented vs prior release
+- `versionCode` is monotonic and single-use; verify it against the last uploaded artifact before submission
 - `versionName` set
 - `eas.json` has a `production` profile
 - Build target produces `.aab` (not only `.apk`)
@@ -108,6 +109,7 @@ Before the agent can emit anything better than **NO_GO**, the project must show:
 - All sensitive permissions justified
 - Data Safety suggestions reviewed by a human
 - RC/IAP products referenced in code have matching store metadata
+- If the project uses npm, the lockfile is in sync and was regenerated on the CI Node major so `npm ci` will not fail in the release environment
 
 ## Suggested commands
 

@@ -1,0 +1,85 @@
+{
+  "skill_name": "app-store-review",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Audit this iOS app's App Store submission readiness: it has subscriptions, a third-party analytics SDK, ads that may track users across apps, iPhone and iPad support, and a PrivacyInfo.xcprivacy file that only declares UserDefaults with CA92.1. Give the highest-risk rejection issues and the exact checks the team should run before upload.",
+      "expected_output": "A source-grounded App Review readiness audit covering IAP/subscription display, ATT, privacy manifests and SDK manifests, Xcode/SDK upload requirements, screenshot requirements, metadata, and reviewer access.",
+      "files": [],
+      "expectations": [
+        "Mentions that uploads after April 28, 2026 need Xcode 26 or later with the relevant platform SDK 26 or later.",
+        "Identifies that tracking across apps or websites requires ATT, NSUserTrackingUsageDescription, and no tracking before authorization.",
+        "Checks whether third-party SDK code that collects data, uses required-reason APIs, enables data collection, or contacts tracking domains has its own privacy manifest.",
+        "Warns that digital subscriptions generally require StoreKit IAP and visible subscription terms, restore purchases, and no external purchase path unless current rules or entitlements allow it.",
+        "Includes iPhone 6.9-inch and iPad 13-inch screenshot requirements for a universal iPhone/iPad app."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Review this proposed PrivacyInfo.xcprivacy plan: the app uses UserDefaults for settings, checks free disk space before downloading offline videos, reads file modification dates for files picked through UIDocumentPickerViewController, and includes an SDK that wraps UserDefaults for the app. Which required-reason API categories and reason codes should be declared, and where should the app versus SDK declarations live?",
+      "expected_output": "A privacy-manifest reason-code review that selects current approved reason codes and correctly separates app manifest declarations from SDK manifest declarations.",
+      "files": [],
+      "expectations": [
+        "Selects NSPrivacyAccessedAPICategoryUserDefaults with CA92.1 for app-owned UserDefaults settings.",
+        "Selects NSPrivacyAccessedAPICategoryDiskSpace with E174.1 for checking free space before downloads.",
+        "Selects NSPrivacyAccessedAPICategoryFileTimestamp with 3B52.1 for user-granted document picker files.",
+        "Selects UserDefaults wrapper SDK reason C56D.1 for the SDK only and says the SDK must report its own required-reason API use in its own manifest.",
+        "Warns not to invent broad reasons and to re-check Apple's current required-reason API documentation."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I want better App Store keywords and screenshot captions for my habit tracker, but I also don't want a metadata rejection. Give me the compliance guardrails only, and call out which parts belong in an ASO strategy pass rather than an App Review pass.",
+      "expected_output": "A boundary-aware answer that keeps app-store-review focused on metadata compliance and routes keyword strategy and conversion optimization to the ASO skill.",
+      "files": [],
+      "expectations": [
+        "States that keyword research, ranking strategy, and conversion optimization belong to an ASO strategy pass rather than App Review compliance.",
+        "Gives App Review metadata guardrails: accurate app name, screenshots showing real UI, no misleading features, no prices in description, no competitor names or irrelevant keywords.",
+        "Mentions the 30-character app name/subtitle limits and 100-character keyword field limit with comma-separated keywords and no spaces after commas.",
+        "Mentions current screenshot size compliance, including 6.9-inch iPhone and 13-inch iPad requirements when applicable.",
+        "Does not expand into a full keyword plan or marketing copy rewrite."
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Apple rejected our React Native app under Guideline 2.1(b): 'the premium content remained locked after purchase' in the sandbox on iPad. We use RevenueCat, and our purchase flow calls a backend webhook to validate before granting the entitlement. Our unit tests pass and the purchase itself succeeds. What is the root cause and how do we fix it?",
+      "expected_output": "A root-cause diagnosis identifying the webhook race in sandbox, with a fix that refreshes the provider cache, retries with backoff, and falls back to local customer info, plus the environment gates and the anti-fraud trade-off.",
+      "files": [],
+      "expectations": [
+        "Identifies that the server-side webhook frequently has not processed the sandbox transaction when the app queries, so entitlementGranted is false and the app locks premium.",
+        "Recommends invalidating the provider customer-info cache and reading fresh customer info before falling back to the backend.",
+        "Recommends retry with backoff and a fallback to the local RevenueCat/StoreKit customer info, which already has the entitlement active immediately after purchase.",
+        "States the anti-fraud trade-off explicitly and that the backend keeps validating asynchronously and can revoke.",
+        "Requires the entitlement grant to re-render the UI without an app restart.",
+        "Checks the Paid Applications Agreement is Active and that testing happens in sandbox on a physical iPad rather than the simulator."
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Apple rejected us under 2.1(a) saying the 'Rate app' and 'Delete account' buttons did nothing when tapped on an iPad Air. Both work when I test on my iPhone simulator. What should I check and what gates should I add so this never happens again?",
+      "expected_output": "A diagnosis covering the missing-handler pattern, the silent no-op native review prompt, and the nested-confirmation race on iPad, plus greppable pre-submission gates.",
+      "files": [],
+      "expectations": [
+        "Checks whether the element has accessibilityRole=\"button\" but no onPress handler, and provides a grep-style gate to detect interactive elements missing a handler.",
+        "Explains that the native review prompt is a silent no-op in App Review builds and rate-limited, so a fallback to the App Store product page URL is mandatory.",
+        "Identifies nested confirmation sheets racing the first sheet's dismissal as a likely iPad-specific cause and recommends one confirmation at a time.",
+        "States that iPad is commonly the review device and that testing must happen on a physical iPad in a release or TestFlight build, not an iPhone simulator.",
+        "Recommends reproducing the bug on iPad before applying the fix rather than assuming the root cause."
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "We are resubmitting an Expo/EAS app after a rejection. The fix is merged to main, EAS reports the build as finished, and I am about to hit Update Review. What should I verify first?",
+      "expected_output": "A submission-pipeline audit distinguishing the four states, verifying the build contains the fix, checking build number monotonicity and lockfile sync, and stopping for owner confirmation.",
+      "files": [],
+      "expectations": [
+        "Distinguishes the four states: cloud build finished, submit processed, build attached to the App Store version, and Update Review submitted.",
+        "Verifies the fix commit is an ancestor of the submitted build's revision, since a fix on main proves nothing about the binary Apple tested.",
+        "Verifies the build number is higher than the last uploaded build via the App Store Connect API, since build numbers are monotonic and single-use.",
+        "Checks the lockfile is in sync and regenerated on the CI Node major, since npm ci fails hard on drift.",
+        "Requires re-auditing screenshots when the reviewed UI changed, and auditing every locale and device slot via View All Sizes in Media Manager.",
+        "Stops before Update Review and requires explicit confirmation from the account owner."
+      ]
+    }
+  ]
+}

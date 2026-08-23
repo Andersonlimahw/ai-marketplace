@@ -29,8 +29,13 @@ Build + submit via EAS. Items marked `# APPROVAL` require explicit human confirm
 - [ ] Build status "Processing" → "Ready" in App Store Connect (human-monitored)
 - [ ] Add internal testers in TestFlight
 - [ ] Run `checklists/testflight-smoke.md` on the TF build
+- [ ] Keep these states distinct: cloud build finished → submit processed → build attached to the App Store version → `Update Review`
+- [ ] Verify the fix commit is an ancestor of the revision in the candidate build
 
 ## Pre-Submit Sanity
 - [ ] `node scripts/validate-ios-release.mjs --project . --strict` passes
+- [ ] Lockfile is in sync and was generated on the CI Node major; `npm ci` passes
+- [ ] Build number is higher than the last uploaded build, verified through the App Store Connect API
 - [ ] Decision is GO / GO_WITH_WARNINGS (no open BLOCKER)
 - [ ] Review Notes + metadata attached in App Store Connect
+- [ ] Stop before `Update Review` and obtain explicit account-owner confirmation

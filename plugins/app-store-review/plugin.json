@@ -1,0 +1,26 @@
+{
+  "name": "app-store-review",
+  "version": "1.0.0",
+  "description": "Prepare for Apple App Store review and prevent rejections across native and React Native/Expo/EAS apps. Covers review guidelines, PrivacyInfo.xcprivacy, IAP and StoreKit, ATT, metadata, screenshots, App Store Connect pipeline gates, RevenueCat entitlement races, and field-tested rejection patterns.",
+  "author": {
+    "name": "Anderson Lima",
+    "url": "https://andersonlimahw.github.io"
+  },
+  "license": "MIT",
+  "keywords": [
+    "skill",
+    "lemon-ai-hub",
+    "app-store-review",
+    "app-store",
+    "apple",
+    "ios",
+    "react-native",
+    "expo",
+    "eas",
+    "revenuecat",
+    "iap",
+    "privacy",
+    "metadata",
+    "app-review-rejections"
+  ]
+}

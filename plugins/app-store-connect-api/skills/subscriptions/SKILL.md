@@ -633,3 +633,10 @@ Use these endpoints to automate subscriptions tasks within Apple Store Connect.
 - Always authenticate requests using your Apple Store Connect API key (JWT token).
 - Handle rate limiting gracefully, as the Apple Store Connect API enforces quotas.
 - When writing integrations, refer back to the exact schemas for precise payload construction.
+
+## App Review subscription guardrails
+
+- Configure a Terms of Use URL for every subscription where the App Store Connect schema exposes that field, and keep it aligned with the app-level EULA and every localized description.
+- Before review, verify both Terms of Use and Privacy URLs return HTTP 200 and are reachable from inside the app.
+- In the paywall, the billed subscription amount must be the largest typographic element in the plan card. A calculated per-period amount is subordinate in size and position, and must be computed from the live product price rather than hardcoded per locale.
+- Use `app-store-review` for the compliance audit; use this skill for the subscription API resources and relationships.
