@@ -310,3 +310,4 @@ the app's brand maturity tier — they may be deliberate choices for Dominant ap
 - **ad-creative**: For creating App Store and Google Play ad creatives
 - **analytics**: For setting up install attribution and in-app event tracking
 - **customer-research**: For understanding user needs and language to inform listing copy
+- **app-store-review**: For App Review compliance, metadata accuracy, screenshot-slot audits, and rejection prevention. Keep keyword strategy, ranking, and conversion optimization in this skill.

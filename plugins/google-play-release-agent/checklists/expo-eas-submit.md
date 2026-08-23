@@ -11,6 +11,8 @@
 - [ ] Output is `.aab` (not `.apk`)
 - [ ] `EXPO_PUBLIC_USE_MOCK=false` in production profile
 - [ ] versionCode incremented
+- [ ] versionCode is monotonic and single-use relative to the last uploaded artifact
+- [ ] Lockfile is in sync and `npm ci` passes on the CI Node major
 - [ ] Package name matches Play Console app
 
 ## Submit

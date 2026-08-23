@@ -123,8 +123,17 @@ A run can only return **GO** when **all** hold:
 - [ ] No obvious `Alert.alert`/`Alert.prompt` native alerts that hurt review UX (WARNING, not blocker)
 - [ ] No secret files staged for commit (`.env`, `GoogleService-Info.plist`, service accounts)
 - [ ] `EXPO_PUBLIC_USE_MOCK` not `true` in production env (heuristic)
+- [ ] Lockfile is in sync with the manifest and was regenerated on the CI Node major; `npm ci` is expected to pass
+- [ ] Build number is monotonic, single-use, and higher than the last uploaded build, verified through the App Store Connect API
+- [ ] The fix commit is an ancestor of the revision included in the candidate build
+- [ ] Four pipeline states are independently verified: cloud build finished, submit processed, build attached to the App Store version, and `Update Review`
+- [ ] The workflow stops before `Update Review` and waits for explicit account-owner confirmation
 
 Any failed gate → at least `GO_WITH_WARNINGS`. Failed **security/legal** gates (secrets, gambling wording, missing account deletion) → `NO_GO`.
+
+### Submission-state guardrail
+
+Never treat an EAS `finished` result as proof that the reviewed binary is attached to the App Store version. Record the build number, commit revision, processing state, submission state, and version attachment separately. A build that finished before the fix commit, or a build that was processed but never attached to the version, does not satisfy the review gate. Do not run `eas submit`, `Update Review`, or reviewer-facing actions automatically; stop and request owner confirmation.
 
 ---
 

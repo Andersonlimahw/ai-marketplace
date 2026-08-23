@@ -300,3 +300,13 @@ Use these endpoints to automate in-app purchases tasks within Apple Store Connec
 - Always authenticate requests using your Apple Store Connect API key (JWT token).
 - Handle rate limiting gracefully, as the Apple Store Connect API enforces quotas.
 - When writing integrations, refer back to the exact schemas for precise payload construction.
+
+## App Review metadata guardrails
+
+When IAP resources are being prepared for App Review, keep the API operation and the compliance decision separate:
+
+- Each localized IAP display name is unique within its locale and stays at or below 30 characters.
+- Each localized IAP description is unique within its locale and stays at or below 45 characters.
+- If promoted IAP images are duplicated, the lowest-cost remediation is to delete the image with `DELETE /v1/promotedPurchaseImages/{id}` rather than inventing a new asset.
+- A `409 UNMODIFIABLE` response can occur while the app version is `WAITING_FOR_REVIEW`; remove the submission from review before editing locked metadata, then re-check the linked IAPs and screenshots.
+- Audit every product × locale pair before a submission. App Store review compliance belongs to `app-store-review`; this skill supplies the API operations only.

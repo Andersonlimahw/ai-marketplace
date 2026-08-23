@@ -137,3 +137,10 @@ Use these endpoints to automate app metadata tasks within Apple Store Connect.
 - Always authenticate requests using your Apple Store Connect API key (JWT token).
 - Handle rate limiting gracefully, as the Apple Store Connect API enforces quotas.
 - When writing integrations, refer back to the exact schemas for precise payload construction.
+
+## App Review metadata audit
+
+- Age Rating answers must declare only controls and features a reviewer can locate and operate in the candidate build. Prefer `None` over a claim that depends on an explanation outside the app.
+- Treat every screenshot set as an independent matrix of locale × device family × size × orientation. Audit via App Store Connect's **View All Sizes in Media Manager**; the binary language does not select the metadata locale.
+- Screenshots must be captured from the candidate build, not mockups, promotional renders, or Android device chrome. Re-capture every affected slot when the reviewed UI changes.
+- `app-store-review` owns the rejection-risk decision; this skill owns the App Store Connect metadata resources and upload operations.

@@ -172,6 +172,29 @@
       ]
     },
     {
+      "name": "app-store-review",
+      "source": "./plugins/app-store-review",
+      "description": "Prepare for Apple App Store review and prevent rejections across native and React Native/Expo/EAS apps. Covers review guidelines, PrivacyInfo.xcprivacy, IAP and StoreKit, ATT, metadata, screenshots, App Store Connect pipeline gates, RevenueCat entitlement races, and field-tested rejection patterns.",
+      "version": "1.0.0",
+      "license": "MIT",
+      "keywords": [
+        "skill",
+        "lemon-ai-hub",
+        "app-store-review",
+        "app-store",
+        "apple",
+        "ios",
+        "react-native",
+        "expo",
+        "eas",
+        "revenuecat",
+        "iap",
+        "privacy",
+        "metadata",
+        "app-review-rejections"
+      ]
+    },
+    {
       "name": "apple-store-release-agent",
       "source": "./plugins/apple-store-release-agent",
       "description": "AI release agent for the Apple App Store. Audits Expo/React Native iOS builds, App Store metadata, App Privacy readiness, TestFlight, RevenueCat/IAP, Firebase, i18n parity, screenshots, and review notes, then emits a GO/GO_WITH_WARNINGS/NO_GO decision with full risk + privacy + IAP reports. Never submits to App Review or alters the store without explicit human approval. Generic core with presets for Expo/RN/Firebase/RevenueCat apps.",
