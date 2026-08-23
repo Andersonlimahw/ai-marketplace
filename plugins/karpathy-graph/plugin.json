@@ -1,0 +1,25 @@
+{
+  "name": "karpathy-graph",
+  "version": "1.0.0",
+  "description": "Build typed, provenance-tracked knowledge graphs from any context — documents, codebases, incidents, research — so one or many AI agents share durable memory instead of copying transcripts. Use when the user says \"build a knowledge graph\", \"criar grafo\", \"map this codebase/domain\", \"graph these documents\", \"extract entities and relations\", \"ground this claim\", \"visualize the graph\", or asks how facts, sources and experiments connect. Implements the graph plane from Karpathy's Graph Engineering Systems: extract, resolve, assemble, query, evaluate. Every claim carries a source, every merge is reversible, every answer cites edge ids. Writes to the given path, or to ./.karpathy-graphs/<graph-name>/ by default, and renders an interactive HTML explorer for humans.",
+  "author": {
+    "name": "Anderson Lima",
+    "url": "https://andersonlimahw.github.io"
+  },
+  "license": "MIT",
+  "keywords": [
+    "skill",
+    "lemon-ai-hub",
+    "karpathy-graph",
+    "knowledge-graph",
+    "graph-engineering",
+    "provenance",
+    "entity-resolution",
+    "shared-memory",
+    "multi-agent",
+    "grounding",
+    "subgraph-retrieval",
+    "visualization",
+    "cross-harness"
+  ]
+}
