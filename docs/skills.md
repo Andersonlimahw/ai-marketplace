@@ -82,6 +82,9 @@ The following skills are available in the Hub. Each is part of a plugin located 
 ### `incident-runbook`
 - **Location**: [plugins/incident-runbook/SKILL.md](../plugins/incident-runbook/SKILL.md)
 
+### `karpathy-graph`
+- **Location**: [plugins/karpathy-graph/SKILL.md](../plugins/karpathy-graph/SKILL.md)
+
 ### `karpathy-guidelines`
 - **Location**: [plugins/karpathy-guidelines/SKILL.md](../plugins/karpathy-guidelines/SKILL.md)
 

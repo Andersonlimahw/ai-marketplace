@@ -1244,6 +1244,28 @@
       ]
     },
     {
+      "name": "karpathy-graph",
+      "source": "./plugins/karpathy-graph",
+      "description": "Build typed, provenance-tracked knowledge graphs from any context \u2014 documents, codebases, incidents, research \u2014 so one or many AI agents share durable memory instead of copying transcripts. Use when the user says \"build a knowledge graph\", \"criar grafo\", \"map this codebase/domain\", \"graph these documents\", \"extract entities and relations\", \"ground this claim\", \"visualize the graph\", or asks how facts, sources and experiments connect. Implements the graph plane from Karpathy's Graph Engineering Systems: extract, resolve, assemble, query, evaluate. Every claim carries a source, every merge is reversible, every answer cites edge ids. Writes to the given path, or to ./.karpathy-graphs/<graph-name>/ by default, and renders an interactive HTML explorer for humans.",
+      "version": "1.0.0",
+      "license": "MIT",
+      "keywords": [
+        "skill",
+        "lemon-ai-hub",
+        "karpathy-graph",
+        "knowledge-graph",
+        "graph-engineering",
+        "provenance",
+        "entity-resolution",
+        "shared-memory",
+        "multi-agent",
+        "grounding",
+        "subgraph-retrieval",
+        "visualization",
+        "cross-harness"
+      ]
+    },
+    {
       "name": "karpathy-guidelines",
       "source": "./plugins/karpathy-guidelines",
       "description": ">",
@@ -2061,7 +2083,7 @@
     {
       "name": "smart-sub-agents",
       "source": "./plugins/smart-sub-agents",
-      "description": "Creates portable subagent routes with explicit harness, provider, model, and effort selection. Ships a verified provider/model matrix, normalization for common aliases, renderers for Claude Code, Codex, OpenCode, Antigravity, Gemini CLI, and lemon-code, plus an idempotent worker-matrix installer (Claude canonical, Codex TOML, OpenCode md, Agy symlink) and a monthly/weekly sync that reconciles the catalog against live `opencode models` (discovered/stale) without inventing model IDs.",
+      "description": "Creates portable subagent routes with explicit harness, provider, model, and effort selection. Ships a verified model matrix, normalization for common aliases, and renderers for Claude Code, Codex, OpenCode, Antigravity, Gemini CLI, and lemon-code.",
       "version": "1.1.0",
       "license": "MIT",
       "keywords": [
@@ -2072,15 +2094,11 @@
         "provider-routing",
         "model-routing",
         "effort",
-        "worker-matrix",
-        "named-workers",
         "claude-code",
         "codex",
         "opencode",
         "antigravity",
-        "gemini",
-        "model-sync",
-        "budget-contract"
+        "gemini"
       ]
     },
     {

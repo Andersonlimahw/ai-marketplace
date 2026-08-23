@@ -5,3 +5,5 @@ plugins/.system/
 # Python bytecode
 __pycache__/
 *.pyc
+# Local Karpathy Graph outputs
+.karpathy-graphs/
