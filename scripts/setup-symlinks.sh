@@ -85,13 +85,11 @@ echo "Target: All Supported Agents"
 # Claude Code deliberately has NO ~/.claude/skills link: it consumes the hub via
 # the lemon-ai-hub plugin marketplace; a skills/ symlink would duplicate every
 # skill in the session context.
-install_symlink "$REPO_PLUGINS_DIR" "~/.codex/skills"
-install_symlink "$REPO_PLUGINS_DIR" "~/.agy/skills"
 
-# OpenCode (~/.config/opencode) and Gemini keep CURATED skills dirs: hub-backed
-# entries become individual symlinks (fresh content, no drift), non-hub entries
-# are left untouched. Whole-dir symlinks would load 150+ skill descriptions per
-# session in those harnesses.
+# Codex, Agy, OpenCode (~/.config/opencode), and Gemini keep CURATED skills
+# dirs: hub-backed entries become individual symlinks, non-hub entries remain
+# untouched. Whole-dir symlinks would load 150+ descriptions per session and
+# would hide shared-overlay companions such as impeccable and revenue-centric-design.
 curate_hub_symlinks() {
   local skills_dir="$1"
   skills_dir="${skills_dir/#\~/$HOME}"
@@ -108,6 +106,8 @@ curate_hub_symlinks() {
     fi
   done
 }
+curate_hub_symlinks "~/.codex/skills"
+curate_hub_symlinks "~/.agy/skills"
 curate_hub_symlinks "~/.config/opencode/skills"
 curate_hub_symlinks "~/.gemini/skills"
 
