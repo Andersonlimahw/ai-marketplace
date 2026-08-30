@@ -797,6 +797,21 @@
       ]
     },
     {
+      "name": "design-expert",
+      "source": "./plugins/design-expert",
+      "description": "Canonical Apple-inspired frontend design orchestrator for distinctive, accessible, conversion-aware pages and components.",
+      "version": "1.0.0",
+      "license": "MIT",
+      "keywords": [
+        "skill",
+        "lemon-ai-hub",
+        "design",
+        "frontend",
+        "apple-inspired",
+        "motion"
+      ]
+    },
+    {
       "name": "design-taste-frontend",
       "source": "./plugins/design-taste-frontend",
       "description": "Anti-slop frontend skill for landing pages, portfolios, and redesigns. The agent reads the brief, infers the right design direction, and ships interfaces that do not look templated. Real design systems when applicable, audit-first on redesigns, strict pre-flight check.",

@@ -17,6 +17,10 @@ link_is() { # $1=link $2=expected_target
   [ -L "$1" ] && [ "$(readlink "$1")" = "$2" ]
 }
 
+curated_overlay_is_ready() {
+  [ -d "$1" ] && [ -d "$HOME/.agents/skills" ] && [ -r "$HOME/.agents/skills/design-expert/SKILL.md" ]
+}
+
 echo "=== harness-doctor — $(date +%F) ==="
 
 echo "[hub]"
@@ -37,7 +41,16 @@ for f in CLAUDE.md RTK.md kaparthy.md settings.json; do
   [ -r "$HOME/.claude/$f" ] && ok "$f" || bad "$f missing"
 done
 if [ -e "$HOME/.claude/skills" ]; then
-  warn "~/.claude/skills exists — duplicates marketplace skills; remove it (design: lemon-ai-hub marketplace covers the hub)"
+  CLAUDE_DRIFT=0
+  for entry in "$HOME/.claude/skills"/*/; do
+    [ -d "$entry" ] || continue
+    n="$(basename "$entry")"
+    if [ -d "$HUB/$n" ]; then
+      warn "~/.claude/skills/$n duplicates marketplace skill"
+      CLAUDE_DRIFT=1
+    fi
+  done
+  [ "$CLAUDE_DRIFT" = "0" ] && ok "~/.claude/skills contains local-only skills"
 else
   ok "~/.claude/skills absent (correct: marketplace covers the hub)"
 fi
@@ -47,12 +60,24 @@ grep -q 'ctx-recall.sh' "$HOME/.claude/settings.json" && ok "ctx-recall (memory 
 grep -q 'auto-model-selector.sh' "$HOME/.claude/settings.json" && ok "auto-model-selector on UserPromptSubmit" || warn "auto-model-selector not wired"
 
 echo "[codex ~/.codex]"
-link_is "$HOME/.codex/skills" "$HUB" && ok "skills → hub" || bad "skills symlink wrong: $(readlink "$HOME/.codex/skills" 2>/dev/null || echo absent)"
+if link_is "$HOME/.codex/skills" "$HUB"; then
+  ok "skills → hub"
+elif curated_overlay_is_ready "$HOME/.codex/skills"; then
+  ok "curated skills + shared design-expert overlay"
+else
+  bad "skills topology wrong: $(readlink "$HOME/.codex/skills" 2>/dev/null || echo absent)"
+fi
 [ -r "$HOME/.codex/AGENTS.md" ] && ok "AGENTS.md" || bad "AGENTS.md missing"
 [ -r "$HOME/.codex/RTK.md" ] && ok "RTK.md" || warn "RTK.md missing (referenced by AGENTS.md)"
 
 echo "[agy ~/.agy]"
-link_is "$HOME/.agy/skills" "$HUB" && ok "skills → hub" || bad "skills symlink wrong: $(readlink "$HOME/.agy/skills" 2>/dev/null || echo absent)"
+if link_is "$HOME/.agy/skills" "$HUB"; then
+  ok "skills → hub"
+elif curated_overlay_is_ready "$HOME/.agy/skills"; then
+  ok "curated skills + shared design-expert overlay"
+else
+  bad "skills topology wrong: $(readlink "$HOME/.agy/skills" 2>/dev/null || echo absent)"
+fi
 [ -r "$HOME/.agy/AGENTS.md" ] && ok "AGENTS.md" || bad "AGENTS.md missing"
 
 echo "[opencode ~/.config/opencode]"
