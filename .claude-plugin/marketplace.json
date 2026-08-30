@@ -1396,6 +1396,23 @@
       ]
     },
     {
+      "name": "logo-creator-expert",
+      "source": "./plugins/logo-creator-expert",
+      "description": "Design minimalist, single-gesture brand marks that remain legible at 16px, with product-grounded concepts, real-size contact sheets, and a complete export ladder.",
+      "version": "1.0.0",
+      "license": "MIT",
+      "keywords": [
+        "skill",
+        "lemon-ai-hub",
+        "logo",
+        "branding",
+        "favicon",
+        "app-icon",
+        "minimalist-design",
+        "logo-creator-expert"
+      ]
+    },
+    {
       "name": "marketing-council",
       "source": "./plugins/marketing-council",
       "description": "When the user wants multiple expert perspectives on a marketing question \u2014 a simulated board of advisors staffed by legendary marketers (Seth Godin, David Ogilvy, Eugene Schwartz, April Dunford, Rory Sutherland, Alex Hormozi, Byron Sharp, and more). Also use when the user mentions 'marketing council,' 'board of advisors,' 'advisory board,' 'what would Seth Godin say,' 'what would Ogilvy think,' 'channel Hormozi,' 'get multiple perspectives,' 'debate this,' 'have the council review,' 'marketing mentors,' or asks how a famous marketer would approach their problem. The council gives each advisor's take through their documented frameworks, surfaces where they disagree, and synthesizes a recommendation. For executing the winning direction, hand off to positioning, offers, copywriting, ads, or the relevant skill.",

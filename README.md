@@ -39,6 +39,20 @@ Open the interactive installer, or install a plugin by name using the `plugin@ma
 /plugin install agentic-value-loops@lemon-ai-hub
 ```
 
+### 3. Install one skill with `npx skills`
+
+Install only a selected skill for a supported agent instead of the complete hub:
+
+```bash
+npx skills add https://github.com/Andersonlimahw/lemon-ai-hub/tree/main/plugins/logo-creator-expert --global --yes
+```
+
+The repository helper targets the skill directory directly and accepts the same `skills add` options:
+
+```bash
+./scripts/add-skill.sh logo-creator-expert --global --yes --agent claude-code
+```
+
 | Plugin | Description |
 | --- | --- |
 | `a11y-audit` | WCAG 2.1 AA/AAA accessibility audit for web components, pages, and apps. Detects contrast failures, missing ARIA labels, keyboard trap issues, focus order problems, and screen-reader gotchas. Use when user wants to audit accessibility, fix a11y warnings, prepare for compliance review, or validate UI against WCAG standards. |
@@ -51,6 +65,7 @@ Open the interactive installer, or install a plugin by name using the `plugin@ma
 | `analytics` | When the user wants to set up, improve, or audit analytics tracking and measurement. Also use when the user mentions "set up tracking," "GA4," "Google Analytics," "conversion tracking," "event tracking," "UTM parameters," "tag manager," "GTM," "analytics implementation," "tracking plan," "how do I measure this," "track conversions," "attribution," "Mixpanel," "Segment," "are my events firing," or "analytics isn't working." Use this whenever someone asks how to know if something is working or wants to measure marketing results. For A/B test measurement, see ab-testing. |
 | `api-test-loop` | API Test Loop plugin — Automated REST API validation loop. Executes HTTP requests via CURL, logs findings for REST best practices (method, input/output format, security, performance, docs), and implements backend fixes. |
 | `app-store-connect-api` | Apple Store Connect API Expert Agent and Skills. Provides comprehensive tools and knowledge for interacting with the App Store Connect API, covering domains like TestFlight, In-app purchases, Subscriptions, App management, and Provisioning. |
+| `app-store-review` | Prepare for Apple App Store review and prevent rejections across native and React Native/Expo/EAS apps. Covers review guidelines, PrivacyInfo.xcprivacy, IAP and StoreKit, ATT, metadata, screenshots, App Store Connect pipeline gates, RevenueCat entitlement races, and field-tested rejection patterns. |
 | `apple-store-release-agent` | AI release agent for the Apple App Store. Audits Expo/React Native iOS builds, App Store metadata, App Privacy readiness, TestFlight, RevenueCat/IAP, Firebase, i18n parity, screenshots, and review notes, then emits a GO/GO_WITH_WARNINGS/NO_GO decision with full risk + privacy + IAP reports. Never submits to App Review or alters the store without explicit human approval. Generic core with presets for Expo/RN/Firebase/RevenueCat apps. |
 | `architecture-deepener` | Surface opportunities to deepen a codebase. Finds shallow modules (thin pass-throughs, anemic types, domain logic leaking into controllers/UI) and proposes deep modules that co-locate behavior with data, enforce invariants, and stay navigable for humans and AI agents. Emits a visual HTML report and runs an interactive grilling loop that pressure-tests each opportunity before any code moves. Integrates with domain-modeling, codebase-design, and ADR workflows. |
 | `aso` | When the user wants to audit or optimize an App Store or Google Play listing. Also use when the user mentions 'ASO audit,' 'app store optimization,' 'optimize my app listing,' 'improve app visibility,' 'app store ranking,' 'audit my listing,' 'why aren't people downloading my app,' 'improve my app conversion,' 'keyword optimization for app,' or 'compare my app to competitors.' Use when the user shares an App Store or Google Play URL and wants to improve it. |
@@ -129,6 +144,7 @@ Open the interactive installer, or install a plugin by name using the `plugin@ma
 | `llm-wiki-curator` | Maintains docs/ in the Karpathy-style LLM-wiki standard. Generates docs/llms.txt (flat machine-readable index conforming to llmstxt.org), validates broken links, enforces a minimum front-matter in new .md files (title, status, updated, related), groups orphan docs. Use when the user says "update docs index", "generate llms.txt", "audit docs", "organize wiki", "cure documentation", or after adding/renaming a file in docs/. |
 | `load-test` | Load testing setup, execution, and analysis with k6, Artillery, or Locust. Generates test scripts, defines VU ramp-up scenarios, interprets p99 latency and error rate results, and suggests infrastructure fixes. Use when user wants to load test an API, check throughput limits, validate SLO headroom, or diagnose performance under traffic. |
 | `load-test-runner` | Load testing orchestration plugin. Manages k6 and Artillery test suites, schedules nightly soak tests, stores historical performance baselines, detects performance regressions between releases, and generates Grafana-compatible performance reports. Tracks p50/p95/p99 trends over time. |
+| `logo-creator-expert` | Design minimalist, single-gesture brand marks that remain legible at 16px, with product-grounded concepts, real-size contact sheets, and a complete export ladder. |
 | `marketing-council` | When the user wants multiple expert perspectives on a marketing question — a simulated board of advisors staffed by legendary marketers (Seth Godin, David Ogilvy, Eugene Schwartz, April Dunford, Rory Sutherland, Alex Hormozi, Byron Sharp, and more). Also use when the user mentions 'marketing council,' 'board of advisors,' 'advisory board,' 'what would Seth Godin say,' 'what would Ogilvy think,' 'channel Hormozi,' 'get multiple perspectives,' 'debate this,' 'have the council review,' 'marketing mentors,' or asks how a famous marketer would approach their problem. The council gives each advisor's take through their documented frameworks, surfaces where they disagree, and synthesizes a recommendation. For executing the winning direction, hand off to positioning, offers, copywriting, ads, or the relevant skill. |
 | `marketing-ideas` | When the user needs marketing ideas, inspiration, or strategies for their SaaS or software product. Also use when the user asks for 'marketing ideas,' 'growth ideas,' 'how to market,' 'marketing strategies,' 'marketing tactics,' 'ways to promote,' 'ideas to grow,' 'what else can I try,' 'I don't know how to market this,' 'brainstorm marketing,' or 'what marketing should I do.' Use this as a starting point whenever someone is stuck or looking for inspiration on how to grow. For specific channel execution, see the relevant skill (ads, social, emails, etc.). |
 | `marketing-loops` | When the user wants to set up a recurring, self-running marketing workflow — a repeatable loop an AI agent runs on a cadence (weekly, daily, on a trigger) rather than a one-off task. Also use when the user mentions 'marketing loop,' 'recurring marketing workflow,' 'automate my marketing,' 'marketing on autopilot,' 'weekly marketing review,' 'ad fatigue check,' 'content refresh loop,' 'churn watch,' 'ranking drop alert,' 'always-on marketing,' 'marketing automation workflow,' or 'run this every week.' Use this to pick, adapt, and schedule an ongoing marketing loop that orchestrates the other marketing skills. For one-off marketing ideas, see marketing-ideas. For the experimentation loop specifically, see ab-testing. |
@@ -263,4 +279,3 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/Andersonlimahw/lemon-ai-
 
 ---
 *Built with 🍋 by Anderson Lima.*
-

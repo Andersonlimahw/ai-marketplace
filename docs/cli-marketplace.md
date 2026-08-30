@@ -37,3 +37,16 @@ Prints the full implementation file (`SKILL.md`) of the specified skill directly
 ```bash
 ./scripts/marketplace info senior-prompt-engineer
 ```
+
+### 5. Install one skill with `npx skills`
+The helper installs only the selected plugin directory through the open skills CLI:
+
+```bash
+./scripts/add-skill.sh logo-creator-expert --global --yes --agent claude-code
+```
+
+The equivalent direct command is:
+
+```bash
+npx skills add https://github.com/Andersonlimahw/lemon-ai-hub/tree/main/plugins/logo-creator-expert --global --yes
+```
