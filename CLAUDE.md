@@ -37,6 +37,12 @@ plugins/cli-wrapper/        ← CANONICAL SOURCE (git)
 └── templates/              ← symlink-map.json + config templates
 ```
 
+**`plugin.json` component fields** — see [`docs/rules/plugin-manifest.md`](docs/rules/plugin-manifest.md). Claude Code validates the manifest *before* registering anything, so one bad field silently removes every skill and agent the plugin ships:
+- `agents` MUST be an array of file paths. `"agents": "./agents/"` fails with `agents: Invalid input` and the plugin never installs — it stays invisible in Claude Code and Codex while still working in Antigravity, which never parses `plugin.json`.
+- Every declared `skills` / `commands` / `hooks` path MUST exist and be non-empty.
+- **Prefer omitting these fields.** Components are discovered by convention from `agents/`, `skills/` and the root `SKILL.md`; 158 of 166 plugins here declare nothing.
+- Verify before committing: `python3 scripts/validate_plugins.py` (MANIFEST_* codes) and `claude plugin validate plugins/<name>/plugin.json`.
+
 **Global topology** (managed by `scripts/setup-symlinks.sh`; verified by `scripts/harness-doctor.sh`):
 - Skills hub = this project's `plugins/`. Claude consumes it via the `lemon-ai-hub` plugin marketplace (no `~/.claude/skills` — it would duplicate every skill).
 - Codex/Agy: `~/.codex/skills` and `~/.agy/skills` → dir symlinks to `plugins/`
