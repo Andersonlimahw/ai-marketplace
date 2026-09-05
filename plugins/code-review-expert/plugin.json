@@ -31,5 +31,8 @@
     "automation"
   ],
   "skills": "./skills/",
-  "agents": "./agents/"
+  "agents": [
+    "./agents/thermo-nuclear-review-subagent.md",
+    "./agents/thermo-nuclear-code-quality-review-subagent.md"
+  ]
 }
