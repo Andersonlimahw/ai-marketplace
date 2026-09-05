@@ -94,6 +94,19 @@ curate_hub_symlinks() {
   local skills_dir="$1"
   skills_dir="${skills_dir/#\~/$HOME}"
   [ -d "$skills_dir" ] || return 0
+
+  # A harness skills dir may itself be a whole-dir symlink to plugins/ (this is
+  # still the case for ~/.gemini/skills). Curating it would resolve straight
+  # into the hub and rewrite every plugins/<name> into a symlink pointing at
+  # itself, destroying the working tree. Compare physical paths, not the
+  # argument, and refuse to curate the hub into itself.
+  local resolved
+  resolved="$(cd "$skills_dir" 2>/dev/null && pwd -P)" || return 0
+  if [ "$resolved" = "$(cd "$REPO_PLUGINS_DIR" && pwd -P)" ]; then
+    echo "Skipping curate for $skills_dir — it resolves to the hub itself ($resolved)"
+    return 0
+  fi
+
   local entry name
   for entry in "$skills_dir"/*/; do
     [ -d "$entry" ] || continue
