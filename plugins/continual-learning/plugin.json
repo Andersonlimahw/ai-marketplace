@@ -29,6 +29,5 @@
   "agents": [
     "./agents/agents-memory-updater.md"
   ],
-  "skills": "./skills/",
   "hooks": "./hooks/hooks.json"
 }

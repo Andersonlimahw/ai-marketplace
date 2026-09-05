@@ -71,6 +71,11 @@ the affected areas:
 - [`docs/rules/marketplace-sync.md`](docs/rules/marketplace-sync.md) — every plugin
   in `plugins/` MUST be registered in `.claude-plugin/marketplace.json` in the same
   change. Never add/rename/remove a plugin without syncing the marketplace.
+- [`docs/rules/plugin-manifest.md`](docs/rules/plugin-manifest.md) — never declare a
+  component path `plugin.json` cannot deliver. `agents` MUST be an array of file
+  paths (`"./agents/"` makes the whole install fail), and every declared `skills`
+  / `commands` / `hooks` path MUST exist. Prefer omitting the field: components
+  are discovered by convention. Verify with `python3 scripts/validate_plugins.py`.
 - [`docs/rules/worktree-hygiene.md`](docs/rules/worktree-hygiene.md) — `.claude/`
   is local machine state and MUST be in `.gitignore`. Before any `git commit` /
   `git push` / PR creation, run `rtk git worktree list` and remove every stale

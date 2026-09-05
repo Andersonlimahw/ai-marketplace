@@ -160,6 +160,68 @@ def check_skill_file(report: Report, plugin: str, path: Path, expected_name: str
         )
 
 
+def check_component_declarations(report: Report, plugin_dir: Path, data: dict) -> None:
+    """Validate the optional component fields of plugin.json.
+
+    Claude Code refuses to install a plugin whose manifest fails schema
+    validation, and it aborts before registering any component — so one bad
+    field silently removes every skill and agent the plugin ships. Two shapes
+    have bitten this repo:
+
+        "agents": "./agents/"     -> `agents: Invalid input`, install fails
+        "skills": "./skills/"     -> accepted, but a load failure at runtime
+                                     when the directory does not exist
+
+    `agents` must be an array of file paths. Every declared path must exist.
+    Omitting a field entirely is always safe: components are discovered by
+    convention from agents/, skills/ and the root SKILL.md.
+    """
+    plugin = plugin_dir.name
+
+    agents = data.get("agents")
+    if isinstance(agents, str):
+        report.error(
+            plugin,
+            "MANIFEST_AGENTS_NOT_ARRAY",
+            f'plugin.json declares "agents": "{agents}" — Claude Code rejects a '
+            "bare directory string here (`agents: Invalid input`) and the whole "
+            "plugin fails to install. Use an array of file paths, or drop the "
+            "field and let agents/ be discovered by convention",
+        )
+        agents = None
+
+    declared: list[tuple[str, str]] = []
+    if isinstance(agents, list):
+        declared += [("agents", str(p)) for p in agents]
+    for key in ("skills", "commands", "hooks"):
+        value = data.get(key)
+        if isinstance(value, str):
+            declared.append((key, value))
+        elif isinstance(value, list):
+            declared += [(key, str(p)) for p in value]
+
+    for key, rel_path in declared:
+        target = (plugin_dir / rel_path).resolve()
+        if not target.exists():
+            report.error(
+                plugin,
+                "MANIFEST_PATH_NOT_FOUND",
+                f'plugin.json declares "{key}": "{rel_path}" but that path does '
+                "not exist — the runtime loader reports this as a load failure. "
+                "Fix the path or drop the field",
+            )
+        elif target.is_dir() and not any(
+            child for child in target.iterdir() if not child.name.startswith(".")
+        ):
+            report.warn(
+                plugin,
+                "MANIFEST_PATH_EMPTY",
+                f'plugin.json declares "{key}": "{rel_path}" but the directory is '
+                "empty — drop the field rather than announce components the "
+                "plugin does not ship",
+            )
+
+
 def check_plugin(report: Report, plugin_dir: Path) -> None:
     plugin = plugin_dir.name
 
@@ -190,6 +252,7 @@ def check_plugin(report: Report, plugin_dir: Path) -> None:
             report.error(plugin, "PLUGIN_JSON_NO_DESCRIPTION", "plugin.json has no description")
         if not data.get("version"):
             report.warn(plugin, "PLUGIN_JSON_NO_VERSION", "plugin.json has no version")
+        check_component_declarations(report, plugin_dir, data)
 
     # --- root SKILL.md ---------------------------------------------------
     root_skill = plugin_dir / "SKILL.md"
