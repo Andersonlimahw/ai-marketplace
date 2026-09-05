@@ -12,6 +12,5 @@
     "lemon-ai-hub",
     "agent-sdk-dev"
   ],
-  "skills": "./skills/",
-  "agents": "./agents/"
+  "skills": "./skills/"
 }
