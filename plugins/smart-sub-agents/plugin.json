@@ -21,5 +21,7 @@
     "antigravity",
     "gemini"
   ],
-  "agents": "./agents/"
+  "agents": [
+    "./agents/smart-route.md"
+  ]
 }
