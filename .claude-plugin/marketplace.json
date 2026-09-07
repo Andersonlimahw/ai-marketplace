@@ -1295,8 +1295,8 @@
     {
       "name": "karpathy-loop",
       "source": "./plugins/karpathy-loop",
-      "description": "Autonomous Loop Engineering engine based on Andrej Karpathy's Autoresearch method. Enables AI agents to run iterative hypothesis-modify-execute-validate-improve cycles for continuous optimization of code, models, and metrics.",
-      "version": "2.0.0",
+      "description": "Autonomous Loop Engineering engine generalized from Andrej Karpathy's Autoresearch method. Enables AI agents to run iterative hypothesis-modify-execute-validate-improve cycles for continuous optimization of any measurable software engineering metric \u2014 performance, build time, bundle size, test coverage, correctness \u2014 not limited to ML training.",
+      "version": "2.1.0",
       "license": "MIT",
       "keywords": [
         "skill",

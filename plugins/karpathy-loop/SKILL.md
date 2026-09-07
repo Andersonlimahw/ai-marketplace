@@ -1,37 +1,35 @@
 ---
 name: karpathy-loop
-description: Executes autonomous Loop Engineering cycles (Autoresearch) for continuous code and metric optimization.
-version: 2.0.0
+description: Executes autonomous Loop Engineering cycles for continuous software engineering optimization — performance, build time, bundle size, test coverage, correctness — against any measurable metric.
+version: 2.1.0
 ---
 
-# Karpathy Loop (Autoresearch)
+# Karpathy Loop (Loop Engineering)
 
-Implements **Loop Engineering** — the practice of delegating experimentation loops to AI agents that iteratively modify code, run experiments, evaluate metrics, and decide to keep or revert changes. Based on Andrej Karpathy's Autoresearch method.
+Implements **Loop Engineering** — the practice of delegating experimentation loops to an AI agent that iteratively modifies code, runs a timed experiment, evaluates a metric, and decides to keep or revert the change. Generalized from Andrej Karpathy's Autoresearch method to general-purpose software engineering: performance tuning, build/CI optimization, bundle-size reduction, test-coverage loops, flaky-test fixes, refactors — anything with a measurable metric and a revert path. No ML/GPU/dataset assumptions required.
 
 ## Core Architecture
 
-Three-file contract:
+Three-part contract:
 
-| File | Role | Agent Editable? |
-|------|------|----------------|
-| `prepare.py` | Static experiment setup: data, tokenizer, metric definition | No (immutable baseline) |
-| `train.py` (or target) | Model/code under optimization | Yes (agent's playground) |
-| `program.md` | Human-written instructions, constraints, and acceptance criteria | No (human edits only) |
+| Part | Role | Agent Editable? | Required? |
+|------|------|----------------|-----------|
+| Setup script (wired via the `evaluation_script` field; e.g. `prepare.sh`, fixtures, seed data) | Deterministic baseline for the experiment | No (immutable baseline) | Optional — see `evaluation_script` under `/runLoop` below |
+| Target file(s) | The code under optimization — any language, any layer | Yes (agent's playground) | Required |
+| `program.md` | Human-written instructions, constraints, metric definition, and acceptance criteria | No (human edits only) | Required |
 
 Each iteration: agent reads `program.md` → forms hypothesis → edits target code → runs timed experiment (default 5 min) → evaluates metric → commits if improved, reverts if regressed.
 
 ## Memory Caching Strategy
 
-Two-layer cache inspired by the AI Engineering Guidebook:
+Two-layer cache for iterative agent loops:
 
-**Layer 1 — Cold Cache (CAG / KV Cache)**
-Stable, rarely-changing context cached directly in KV memory:
+**Layer 1 — Cold Cache (stable context)**
+Stable, rarely-changing context reused across every iteration without recomputation:
 - `program.md` instructions
 - Baseline metrics and experiment contract
 - Permission policies and constraints
 - Shared system prompts
-
-Avoids recomputing the same static information on every iteration. Uses Paged Attention to prevent GPU memory fragmentation.
 
 **Layer 2 — Hot Cache (Prompt Cache)**
 Dynamic per-iteration state via OpenAI/Anthropic prompt caching:
@@ -49,14 +47,16 @@ Start an autonomous optimization loop.
 ```json
 {
   "program_file": "./program.md",
-  "target_file": "./train.py",
-  "evaluation_script": "./prepare.py",
-  "metric_name": "val_bpb",
+  "target_file": "./src/parser.ts",
+  "evaluation_script": "./scripts/prepare.sh",
+  "metric_name": "p95_latency_ms",
   "max_iterations": 100,
   "timeout_seconds": 300,
   "cache_strategy": "prompt_cache"
 }
 ```
+
+`evaluation_script` is optional — omit it when the target's own existing test/build/bench command already emits `metric_name` directly (e.g. `npm test -- --coverage`, `go test -bench=.`). In that case `program.md` must name the exact command to run; a setup script is only needed when the experiment requires a fixed baseline state the target's own command doesn't already provide.
 
 Response:
 ```json
@@ -86,16 +86,16 @@ Response:
   "status": "running",
   "current_iteration": 42,
   "best_metric": {
-    "name": "val_bpb",
-    "value": 1.1023,
-    "improvement_pct": 12.4
+    "name": "p95_latency_ms",
+    "value": 142,
+    "improvement_pct": 13.9
   },
   "total_improvements": 5,
   "iterations": [
     {
       "number": 38,
-      "hypothesis": "Increase depth from 8 to 12",
-      "metric_value": 1.1023,
+      "hypothesis": "Add index on orders.user_id to cut lookup latency",
+      "metric_value": 142,
       "accepted": true,
       "duration_seconds": 298
     }
@@ -110,7 +110,7 @@ Run a single isolated experiment without commit.
 
 ```json
 {
-  "target_file": "./train.py",
+  "target_file": "./src/parser.ts",
   "dry_run": false,
   "use_cache": true
 }
@@ -120,8 +120,8 @@ Response:
 ```json
 {
   "execution_time_seconds": 298,
-  "metric": { "name": "val_bpb", "value": 1.2345 },
-  "logs": "Epoch 1 loss: 2.1... val_bpb final: 1.2345",
+  "metric": { "name": "p95_latency_ms", "value": 142 },
+  "logs": "test suite: 214 passed, 0 failed... p95_latency_ms final: 142",
   "cached": true
 }
 ```
@@ -133,7 +133,6 @@ Response:
 ```json
 {
   "prompt_cache": { "active_entries": 3, "hits": 38, "misses": 4, "savings_ms": 15200 },
-  "kv_cache": { "active_entries": 2, "memory_usage_mb": 128, "fragmentation_pct": 3.2 },
   "cold_storage": { "cached_files": ["program.md", "baseline.json"], "size_bytes": 24576 }
 }
 ```
@@ -150,7 +149,7 @@ Response:
 {
   "status": "success",
   "reverted_iteration": 38,
-  "previous_metric": { "name": "val_bpb", "value": 1.1500 }
+  "previous_metric": { "name": "p95_latency_ms", "value": 165 }
 }
 ```
 
@@ -158,16 +157,15 @@ Response:
 
 | Permission | Purpose |
 |-----------|---------|
-| `gpu_access` | Run ML experiments (PyTorch) within strict time windows |
 | `llm_api_access` | Agent generates hypotheses and code edits via LLM APIs |
 | `file_storage_read_write` | Read/write target files, logs, and progress artifacts |
-| `network_access` | Download datasets, sync results, call LLM APIs |
+| `network_access` | Fetch dependencies, sync results, call LLM APIs |
 | `git_operations` | Commit accepted changes, revert regressions, track history |
 
 ## Testing
 
-1. `lemon-cli plugin audit karpathy-loop` — verify all 5 permissions requested
-2. Create mock `train.py` that prints `val_bpb: 1.50` → `/runExperiment` → verify metric extraction
-3. Write `program.md` targeting metric reduction → `/runLoop` with `max_iterations: 3` → verify autonomous cycle
+1. `lemon-cli plugin audit karpathy-loop` — verify all 4 permissions requested
+2. Create a mock eval script that prints `p95_latency_ms: 150` → `/runExperiment` → verify metric extraction
+3. Write `program.md` targeting metric reduction (e.g. cut `p95_latency_ms`) → `/runLoop` with `max_iterations: 3` → verify autonomous cycle
 4. `/getCacheStatus` pre/post loop — verify prompt cache hits increase with shared prefixes
 5. `/getResults` during loop + `/revertLast` — verify iteration tracking and git revert

@@ -1,9 +1,8 @@
 {
   "name": "karpathy-loop",
-  "description": "Autonomous Loop Engineering engine based on Andrej Karpathy's Autoresearch method. Enables AI agents to run iterative hypothesis-modify-execute-validate-improve cycles for continuous optimization of code, models, and metrics.",
-  "version": "2.0.0",
+  "description": "Autonomous Loop Engineering engine generalized from Andrej Karpathy's Autoresearch method. Enables AI agents to run iterative hypothesis-modify-execute-validate-improve cycles for continuous optimization of any measurable software engineering metric — performance, build time, bundle size, test coverage, correctness — not limited to ML training.",
+  "version": "2.1.0",
   "permissions": [
-    "gpu_access",
     "llm_api_access",
     "file_storage_read_write",
     "network_access",
@@ -27,8 +26,8 @@
     "metric-driven"
   ],
   "memory_caching": {
-    "strategy": "CAG + Prompt Caching",
-    "description": "Uses Cache-Augmented Generation (CAG) to cache stable experiment context (program.md, metric definitions, baseline results) in KV memory, combined with prompt caching via OpenAI/Anthropic APIs to avoid recomputing shared system prompts across loop iterations. KV cache with Paged Attention reduces GPU memory fragmentation during batch experiment execution.",
+    "strategy": "Cold/Hot Context Split + Prompt Caching",
+    "description": "Splits stable experiment context (program.md, metric definitions, baseline results) from per-iteration dynamic state, combined with prompt caching via OpenAI/Anthropic APIs to avoid recomputing shared system prompts across loop iterations. Reduces token cost as the number of iterations grows.",
     "cold_data": [
       "program.md instructions",
       "baseline metrics",
@@ -49,12 +48,12 @@
       "method": "POST",
       "input": {
         "program_file": "string (path to program.md)",
-        "target_file": "string (path to code file to optimize, e.g. train.py)",
-        "evaluation_script": "string (path to prepare.py or eval harness)",
-        "metric_name": "string (e.g. val_bpb, build_time, bundle_size)",
+        "target_file": "string (path to code file to optimize, e.g. src/parser.ts)",
+        "evaluation_script": "string, optional (path to setup script or eval harness; omit when the target's own test/build/bench command already emits metric_name directly — program.md must then name that command explicitly)",
+        "metric_name": "string (e.g. build_time_ms, bundle_size_kb, test_pass_rate, p95_latency_ms)",
         "max_iterations": "number",
         "timeout_seconds": "number (per experiment)",
-        "cache_strategy": "string (prompt_cache | kv_cache | none)"
+        "cache_strategy": "string (prompt_cache | cold_cache | none)"
       },
       "output": {
         "loop_id": "string",
@@ -98,7 +97,7 @@
       "method": "POST",
       "input": {
         "target_file": "string",
-        "evaluation_script": "string",
+        "evaluation_script": "string, optional (see /runLoop — omit only when program.md names a self-contained target command)",
         "dry_run": "boolean",
         "use_cache": "boolean"
       },
@@ -114,7 +113,7 @@
     },
     {
       "name": "/getCacheStatus",
-      "description": "Inspect current cache state \u2014 active KV cache entries, prompt cache hits, memory usage per cache layer.",
+      "description": "Inspect current cache state \u2014 prompt cache hits and cold-storage size per cache layer.",
       "method": "GET",
       "input": {},
       "output": {
@@ -123,11 +122,6 @@
           "hits": "number",
           "misses": "number",
           "savings_ms": "number"
-        },
-        "kv_cache": {
-          "active_entries": "number",
-          "memory_usage_mb": "number",
-          "fragmentation_pct": "number"
         },
         "cold_storage": {
           "cached_files": "string[]",
@@ -154,17 +148,17 @@
       "step": 1,
       "name": "Manifest Audit",
       "command": "lemon-cli plugin audit karpathy-loop",
-      "expected": "All permissions listed (gpu_access, llm_api_access, file_storage_read_write, network_access, git_operations) must be requested at init."
+      "expected": "All permissions listed (llm_api_access, file_storage_read_write, network_access, git_operations) must be requested at init."
     },
     {
       "step": 2,
       "name": "Baseline /runExperiment",
-      "description": "Create a mock train.py that prints val_bpb: 1.50 after 2s sleep. Hit /runExperiment and verify metric extraction."
+      "description": "Create a mock eval script that prints p95_latency_ms: 150 after 2s sleep. Hit /runExperiment and verify metric extraction."
     },
     {
       "step": 3,
       "name": "Autonomous /runLoop",
-      "description": "Write a minimal program.md asking the agent to reduce val_bpb. Start /runLoop with max_iterations: 3. Verify agent modifies train.py, experiment runs, metric is evaluated, commit/rollback fires."
+      "description": "Write a minimal program.md asking the agent to reduce p95_latency_ms. Start /runLoop with max_iterations: 3. Verify agent modifies the target file, experiment runs, metric is evaluated, commit/rollback fires."
     },
     {
       "step": 4,
