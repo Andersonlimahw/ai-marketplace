@@ -1,0 +1,21 @@
+{
+  "name": "heygen-expert",
+  "version": "1.0.0",
+  "description": "Canonical HeyGen orchestrator — routes between the HeyGen API skills (avatar, video, translate), the HyperFrames composition framework, and the heygen/hyperframes CLIs.",
+  "author": {
+    "name": "Anderson Lima",
+    "url": "https://andersonlimahw.github.io"
+  },
+  "license": "MIT",
+  "keywords": [
+    "skill",
+    "lemon-ai-hub",
+    "heygen",
+    "hyperframes",
+    "avatar",
+    "video",
+    "video-translate",
+    "motion-graphics",
+    "orchestrator"
+  ]
+}
