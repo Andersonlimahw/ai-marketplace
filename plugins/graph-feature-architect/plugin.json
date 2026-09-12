@@ -1,0 +1,19 @@
+{
+  "name": "graph-feature-architect",
+  "version": "1.0.0",
+  "description": "Plan new feature implementations grounded in the project's existing knowledge graph (graphify-out/ or a karpathy-graph output) instead of ad-hoc grepping. Use when the user asks to plan, scope, or architect a new feature and a graph already exists for the codebase — surfaces god nodes, community boundaries, and cross-file relationships the feature will touch before any code is written. Recreated as a minimal skeleton after the original plugin was removed from the hub; broken symlinks in consumer repos pointed here.",
+  "author": {
+    "name": "Anderson Lima",
+    "url": "https://andersonlimahw.github.io"
+  },
+  "license": "MIT",
+  "keywords": [
+    "skill",
+    "lemon-ai-hub",
+    "graph-feature-architect",
+    "knowledge-graph",
+    "feature-planning",
+    "architecture",
+    "graphify"
+  ]
+}
