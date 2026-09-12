@@ -1,9 +1,13 @@
 {
-  "version": 1,
   "hooks": {
-    "stop": [
+    "Stop": [
       {
-        "command": "bun run ${CLAUDE_PLUGIN_ROOT:-${CURSOR_PLUGIN_ROOT}}/hooks/continual-learning-stop.ts"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun run ${CLAUDE_PLUGIN_ROOT:-${CURSOR_PLUGIN_ROOT}}/hooks/continual-learning-stop.ts"
+          }
+        ]
       }
     ]
   }
