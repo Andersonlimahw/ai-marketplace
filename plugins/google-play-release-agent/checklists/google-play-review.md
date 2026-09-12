@@ -17,6 +17,8 @@ Use before submitting. Every box must be checked for **GO**.
 
 ## Stability
 - [ ] No crashes on cold start
+- [ ] Cold-launched the release build 5× after adding any native package (`expo-*`/`react-native-*`) — a broken native link imported at top-of-file crashes before the root component mounts on Android too, and does not reproduce in a debug build (cross-platform with the iOS crash-on-launch pattern)
+- [ ] No interactive element (button, pressable) with a visible/accessible role and no press handler — same failure class as iOS's dead-button rejection
 - [ ] No ANRs on main flows
 - [ ] Pre-launch report reviewed (Roboto test)
 - [ ] Crashlytics / crash reporting configured
