@@ -97,11 +97,14 @@ These are rejections that actually occurred across five consecutive review cycle
 3. **iPad is the review device.** Every finding in that timeline came from an iPad Air 11-inch. Several bugs reproduced *only* there (sheet animation races, release-build event batching). iPhone-only testing is not coverage.
 4. **Release builds behave differently.** The auth bug was invisible in dev builds; JS bridge batching changed native event ordering. Smoke-test a release/TestFlight build.
 5. **Verify the reviewed binary contains the fix.** One rejection repeated purely because the reviewed build predated the fix commit. A fix on `main` proves nothing about the binary Apple tested.
+6. **A citation does not mean the fix is in the codebase.** One 2.3.10 rejection was an App Store Connect IAP localization field, not app code — the repo was already clean with a passing regression spec. Audit App Store Connect metadata directly before assuming the fix is a code change.
+7. **One static regression test per closed finding.** A finding without a test that would have caught it comes back — either as a regression, or as the same bug class on a screen nobody thought to re-check (an unlinked-but-reachable route repeated a sheet-race bug for exactly this reason).
 
 ### High-frequency root causes
 
 | Guideline | Failure | Root cause | Gate |
 |---|---|---|---|
+| 2.1 | Crash on launch, no JS stack trace | recently added native module imported at top-of-file; `requireNativeModule` runs at import time, before the root component mounts | cold-launch 5× in a **Release** build; move the import behind a function-scoped dynamic import |
 | 2.1(a) | Button does nothing | `accessibilityRole="button"` with no `onPress` | grep for interactive elements missing a handler |
 | 2.1(a) | "Rate app" inert | native review prompt is a silent no-op in review builds and rate-limited | always fall back to the App Store product page URL |
 | 2.1(a) | Confirmation never appears | nested confirmation sheets race the first sheet's dismissal on iPad | one confirmation at a time |
@@ -111,6 +114,7 @@ These are rejections that actually occurred across five consecutive review cycle
 | 2.3.2 | Duplicate IAP metadata | display name/description identical across products, per locale | diff every product × locale pair |
 | 2.3.6 | Age rating overclaims | declared a control the reviewer could not find | set to `None` unless the feature is front-and-center |
 | 2.3.3 / 2.3.10 | Screenshots | marketing mockups, non-iOS status bars, stale slots | capture from the candidate build; audit via View All Sizes in Media Manager |
+| 2.3.10 | Cites a competing platform, code is clean | the flagged text is an App Store Connect **IAP localization** field, not app code | audit ASC IAP localizations per product/locale before touching the repo |
 | 5.1.1(iv) | Permission copy | pre-permission button said "Grant Permission" | use "Continue" / "Next"; change `accessibilityLabel` too |
 | 5.1.1(ix) | Account type | individual enrollment for a regulated-category app | not fixable in code — resolve enrollment first |
 | 4.8 | Login services | third-party login without an equivalent privacy-preserving option | add Sign in with Apple |
@@ -120,7 +124,7 @@ These are rejections that actually occurred across five consecutive review cycle
 - **Paid Applications Agreement must be `Active`** — pending banking or tax means no purchase works, including the reviewer's.
 - **Build numbers are monotonic and single-use** — verify the last accepted build via the App Store Connect API before submitting.
 - **`npm ci` fails on any lockfile drift** — regenerate the lock on the CI Node major and commit both files together.
-- **Four distinct states, routinely conflated:** cloud build finished ≠ submit processed ≠ build attached to the version ≠ Update Review submitted.
+- **Five distinct states, routinely conflated:** cloud build finished ≠ submit processed ≠ TestFlight Ready to Submit ≠ build attached to the version ≠ Update Review submitted.
 - **Sandbox testers cannot be created via the API** (`404 PATH_ERROR`) — App Store Connect UI only.
 - **Stop before `Update Review`** and get explicit owner confirmation. Same for replying to the reviewer and releasing.
 
@@ -353,6 +357,8 @@ All rejections appear in the **Resolution Center** in App Store Connect. To resp
 4. If you believe the rejection is incorrect, explain why your app complies, with references to the specific guideline text.
 
 **Tone matters.** Be professional, specific, and concise. Provide demo credentials, screenshots, or screen recordings that demonstrate compliance. Avoid emotional language or threats.
+
+There is no direct email or executive contact channel — see [references/field-lessons-rn-expo.md#apple-contact-channels](references/field-lessons-rn-expo.md#apple-contact-channels) for the three official paths (Resolution Center, App Review Appeal, Developer Support) in escalation order.
 
 ### Escalation to App Review Board
 
