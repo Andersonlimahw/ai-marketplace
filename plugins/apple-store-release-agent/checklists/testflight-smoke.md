@@ -10,6 +10,7 @@ Run on the TestFlight build before App Review. Mark each pass/fail.
 ## Cold Start
 - [ ] Cold start < ~3s on mid-range device
 - [ ] No crash on first launch
+- [ ] Cold-launched **5×** on this Release/TestFlight build specifically — a broken top-level import of a recently added native package crashes before the root component mounts and does not reproduce in Debug/dev-client
 - [ ] Splash → onboarding/home transitions smooth
 
 ## Auth
@@ -38,6 +39,7 @@ Run on the TestFlight build before App Review. Mark each pass/fail.
 - [ ] Delete account reachable
 - [ ] Deletion confirms and signs out
 - [ ] Re-signup creates fresh state
+- [ ] Destructive confirmation tested on a **physical iPad** — nested confirmation sheets (a second one fired from inside the first's `onConfirm`) race the dismiss animation and reproduce mainly there, not on iPhone
 
 ## Crash / Stability Review
 - [ ] No crashes observed across smoke run

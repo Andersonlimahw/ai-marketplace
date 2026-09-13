@@ -50,7 +50,9 @@ plugins/apple-store-release-agent/
     ├── validate-i18n-parity.mjs
     ├── validate-no-native-alerts.mjs
     ├── validate-revenuecat-iap.mjs
-    └── validate-privacy-readiness.mjs
+    ├── validate-privacy-readiness.mjs
+    ├── validate-static-native-imports.mjs
+    └── validate-missing-handlers.mjs
 ```
 
 ## Usage
@@ -70,6 +72,8 @@ Or run a validator directly (Node.js ≥ 18, zero deps):
 node scripts/validate-ios-release.mjs --project . --strict --json
 node scripts/validate-revenuecat-iap.mjs --project . --strict --json
 node scripts/validate-privacy-readiness.mjs --project . --strict --json
+node scripts/validate-static-native-imports.mjs --project . --strict --json
+node scripts/validate-missing-handlers.mjs --project . --strict --json
 ```
 
 Flags accepted by all scripts: `--project <path>` (default cwd), `--output <path>` (write report), `--strict`, `--json`.

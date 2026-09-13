@@ -5,6 +5,7 @@ Rejection patterns observed across five consecutive App Review cycles on a produ
 ## Contents
 
 - [Rejection Timeline](#rejection-timeline)
+- [2.1 — Crash on Launch from Import-Time Native Module](#21--crash-on-launch-from-import-time-native-module)
 - [2.1(a) — Dead Interactive Elements](#21a--dead-interactive-elements)
 - [2.1(a) — Login Loop from Auth Listener Null-Flash](#21a--login-loop-from-auth-listener-null-flash)
 - [2.1(b) — Entitlement Locked After Sandbox Purchase](#21b--entitlement-locked-after-sandbox-purchase)
@@ -13,14 +14,17 @@ Rejection patterns observed across five consecutive App Review cycles on a produ
 - [2.3.2 — Duplicate IAP Metadata and Promo Images](#232--duplicate-iap-metadata-and-promo-images)
 - [2.3.6 — Age Rating Declares Features That Do Not Exist](#236--age-rating-declares-features-that-do-not-exist)
 - [2.3.10 / 2.3.3 — Screenshots](#2310--233--screenshots)
+- [2.3.10 — IAP Localization Referencing Another Platform](#2310--iap-localization-referencing-another-platform)
 - [5.1.1(iv) — Pre-Permission Button Copy](#511iv--pre-permission-button-copy)
 - [5.1.1(ix) — Individual vs Organization Enrollment](#511ix--individual-vs-organization-enrollment)
 - [4.8 — Login Services Equivalence](#48--login-services-equivalence)
 - [1.5 — Support URL Must Actually Support](#15--support-url-must-actually-support)
 - [3.1.2 — Terms of Use / EULA Link](#312--terms-of-use--eula-link)
+- [Investigation Methodology](#investigation-methodology)
 - [Build, Version, and Submission Pipeline](#build-version-and-submission-pipeline)
 - [iPad Is the Review Device](#ipad-is-the-review-device)
 - [App Store Connect API — What It Can and Cannot Do](#app-store-connect-api--what-it-can-and-cannot-do)
+- [Apple Contact Channels](#apple-contact-channels)
 - [Pre-Submission Gate Script](#pre-submission-gate-script)
 
 ---
@@ -37,6 +41,31 @@ Five cycles on one app. The pattern to internalize: **each fix surfaced the next
 | Aug 18, 2026 | 2.3.2 ×2, 2.3.6, 3.1.2(c), 2.1(b), 2.1(a), 5.1.1(iv) | Duplicate IAP metadata; price hierarchy; entitlement locked; dead buttons; permission copy |
 
 **Meta-lesson:** the same guideline was cited across cycles for *different* root causes (2.1(a) was first an auth bug, later a missing `onPress`). Never assume a repeat citation means the previous fix regressed — re-diagnose from scratch.
+
+---
+
+## 2.1 — Crash on Launch from Import-Time Native Module
+
+**What happened:** the app died on cold start with no JS stack trace, no crash the debug build reproduced, and no error the boot-time `try/catch` guard ever saw. The misleading symptom pointed everyone at "SDK/OS too new" for two rounds before the real cause surfaced.
+
+**Root cause:** a newly added native package (`expo-*` / `react-native-*`) was imported at the **top of a file** with a static `import` (or a top-level `require()`). Metro's bundle executes every top-level `require()` in the module graph before the root component ever mounts. If that native module's `requireNativeModule` call fails at **import time** — missing native build step, config plugin not applied, native module not linked in the binary that was actually shipped — the process dies before React even renders, which means it also dies **before any JS-level error boundary or boot guard can run.**
+
+```ts
+// REJECTED — requireNativeModule() runs the instant this file is imported,
+// anywhere in the module graph, including from an unrelated screen's import chain
+import { SomeNativeModule } from "expo-some-new-native-package";
+
+// CORRECT — the native call only runs when the feature is actually used,
+// inside a function, after the root component has mounted
+async function useSomeNativeFeature() {
+  const { SomeNativeModule } = await import("expo-some-new-native-package");
+  return SomeNativeModule.doThing();
+}
+```
+
+**Generalize:** any native module added recently is a suspect for import-time failure, independent of how carefully the JS around it is guarded. `require()`/`import` inside a function defers the native call to actual usage; a top-level import runs unconditionally for every user, on every launch, even on screens that never call the feature.
+
+**Gate:** cold launch the app 5× in a **Release** build (Debug/dev-client builds frequently don't reproduce this — different bundling and native linking). A crash that only appears in Release, with zero JS stack trace, on a recently-added native dependency, is this bug until proven otherwise.
 
 ---
 
@@ -72,6 +101,8 @@ if (await StoreReview.hasAction()) {
 Treat "nothing visible happened" as a failing state: surface a snackbar rather than returning silently.
 
 **Related trap — nested confirmation sheets race on iPad.** Two chained `confirmAction()` calls (second fired inside the first's `onConfirm`) raced against the first sheet's dismissal animation. On iPhone it worked; on iPad's larger layout and different animation timing, the second sheet never rendered — "Delete account" appeared dead. Use one confirmation at a time (explicit step state, or a single sheet with the irreversible copy inline). Apple does not require double confirmation — only that deletion *works*.
+
+**Related trap — orphan routes reappear.** A route was registered in the navigator's route table but not linked from any visible entry point (leftover from a removed flow, or a screen built ahead of its trigger). It carried the *same* nested-sheet bug as above, and because nothing pointed at it, the fix that closed the bug on the reachable screens never touched it — it resurfaced in the next review cycle. A route that exists is reachable by definition (deep link, accessibility scanning, or a future PR wiring it up); "nobody uses this screen today" is not the same as "nobody can reach this screen." When closing a bug class (dead handler, unsafe pattern, banned wording), grep the **whole route table**, not just the screens currently linked in a tab bar or stack.
 
 ---
 
@@ -214,6 +245,18 @@ Two separate rejections, both about screenshots:
 
 ---
 
+## 2.3.10 — IAP Localization Referencing Another Platform
+
+**What happened:** a rejection cited 2.3.10 and quoted text that referenced a competing platform by name. The code had already been audited clean for that exact wording, with a regression spec passing. The bug was not in the repository at all.
+
+**Root cause:** the flagged text lived in an **In-App Purchase localization** field in App Store Connect (product display name or description), not in any app string, locale file, or bundled asset. A prior product-description pass had left it there; nothing in the codebase could have caught it because nothing in the codebase renders it — App Store Connect serves it directly to App Review and to the storefront.
+
+**Generalize:** a citation of guideline 2.3.x, 2.1, or similar does not imply the fix is in the repository. Metadata surfaces that live entirely in App Store Connect — IAP localizations, app description, promotional text, keywords, review notes, age rating answers — are frequently the actual source, and a clean codebase plus a green regression suite proves nothing about them.
+
+**Fix:** audit every IAP/subscription localization (per product, per locale) in App Store Connect directly before touching a single line of code. `PATCH /v1/inAppPurchaseLocalizations/{id}` fixes it once located; the API can also `GET` every localization for a product to search across them without opening each one manually in the UI.
+
+---
+
 ## 5.1.1(iv) — Pre-Permission Button Copy
 
 **What happened:** the custom pre-permission screen before the camera prompt had a button labeled "Grant Permission" / "Conceder Permissão". Apple's instruction was literal: *"Use words like 'Continue' or 'Next' on the button instead."*
@@ -284,9 +327,25 @@ curl -sS -o /dev/null -w "privacy: %{http_code}\n" -L https://example.com/privac
 
 ---
 
+## Investigation Methodology
+
+Process lessons from running this loop across five review cycles — as load-bearing as the individual bug fixes above.
+
+**Audit the current code before acting on the rejection text.** Apple reviewed a build that may be several commits, or several days, behind `main`. A commit that mentions the fix does not prove the shipped behavior is correct today; the rejection text describes what an old binary did, not necessarily what the current tree does. Reproduce (or confirm-fixed) against **current** code first, then decide whether the reviewer's finding is stale, still real, or was actually a different bug wearing the same guideline number.
+
+**Separate what code can prove from what only a human can prove.** Split remediation into two tracks per finding:
+- **Code-provable:** static analysis, typecheck, a regression test, a grep gate — anything a CI job can verify.
+- **Human-only:** a physical device (especially iPad), App Store Connect UI actions (Resolution Center replies, sandbox tester creation, screenshot slot uploads), signing an agreement, confirming a real sandbox purchase.
+
+A green typecheck or a passing unit suite never closes a finding whose proof requires a physical iPad or an App Store Connect screen. Track the two separately so "done" for the code track is never mistaken for "done" overall.
+
+**Write one static regression test per finding, not a general-purpose sweep.** Each closed finding gets a spec that would have caught it: an assertion that every `accessibilityRole="button"` element has a paired `onPress` in the same block; an assertion that no purchase-flow string mentions a competing marketplace; a check that a specific route is reachable from the navigator. A finding without a regression test is a finding that comes back — either as a regression on the same file, or as the same bug class on a file nobody thought to check (see the orphan-route trap above).
+
+---
+
 ## Build, Version, and Submission Pipeline
 
-**Four distinct states, routinely conflated.** "EAS build finished" ≠ "submit processed" ≠ "build attached to the App Store version" ≠ "Update Review submitted". Verify each one independently; a green EAS status proves only the first.
+**Five distinct states, routinely conflated.** "Cloud build finished" ≠ "submit processed" ≠ "TestFlight Ready to Submit" ≠ "build attached to the App Store version" ≠ "Update Review submitted". Verify each one independently; a green build status proves only the first, and reaching "Ready to Submit" in TestFlight does not by itself mean the build has been attached to the version under review. Never declare the release done at the first state.
 
 **Build numbers are monotonic and single-use.** Reusing one fails upload with `bundle version must be higher than previously uploaded version`. Confirm the last accepted build via the App Store Connect API before submitting:
 
@@ -330,9 +389,25 @@ Every rejection in this timeline was found on an **iPad Air 11-inch (M3)**. Revi
 | Upload a promo image | Three-step (reserve → upload → commit) | Painful; the App Store Connect UI is faster |
 | Upload App Store screenshots | Technically yes | Recommended: do it manually |
 | **Create sandbox testers** | **No** | `/v1/sandboxTesters` returns `404 PATH_ERROR`; UI only |
+| **Read the crash log a reviewer attached** | **No** | `GET /v1/builds/{id}/diagnosticSignatures` returns empty for reviewer-attached crash reports — the attachment only exists in the Resolution Center UI |
+| **Read or reply to the Resolution Center thread** | **No** | UI only; there is no endpoint that surfaces reviewer messages |
 | Submit for review | Yes | **Do not run without explicit owner confirmation** |
 
+Re-check this table against Apple's current API reference before treating any row as a hard blocker — API surface area changes without much notice.
+
 **Credential hygiene:** the `.p8` private key, issuer ID, and key ID live outside the repo (e.g. `~/.config/asc/`), are `.gitignore`d (`*.p8`, `AuthKey_*.p8`, `credentials.env`), and JWTs (20-minute lifetime) are never logged in plaintext or committed. Use the minimum API key role for the task. On leak: revoke in App Store Connect, recreate, rotate.
+
+---
+
+## Apple Contact Channels
+
+There is no direct email address and no channel to a human executive. The only official paths, in escalation order:
+
+1. **Resolution Center** inside App Store Connect — the thread attached to the specific submission; the default channel for replying to a rejection.
+2. **App Review Appeal** — `https://developer.apple.com/contact/request/app-review/appeal/` — for a rejection believed to be a misapplication of the guidelines, when the Resolution Center exchange did not resolve it.
+3. **Developer Support** — `https://developer.apple.com/contact/` — for account-level, enrollment, or tooling issues unrelated to a specific submission's review outcome.
+
+Re-verify these URLs against Apple's current developer site before relying on them; contact-form paths are metadata Apple can restructure.
 
 ---
 
@@ -351,6 +426,11 @@ rg -n "Grant Permission|Conceder Permissão|Otorgar Permiso" src/
 # Native alerts instead of in-app confirmation UI (review-flow reliability)
 rg -n "Alert\.(alert|prompt)" src/
 
+# Newly added native dependency imported at top-of-file (import-time crash risk)
+rg -n "^import .* from ['\"](expo-|react-native-)" src --glob '*.{ts,tsx}'
+# for every hit: confirm the package isn't newly added since the last release,
+# or move the import behind a function-scoped dynamic import
+
 # Terms / privacy reachable
 curl -sS -o /dev/null -w "terms: %{http_code}\n"   -L "$TERMS_URL"
 curl -sS -o /dev/null -w "privacy: %{http_code}\n" -L "$PRIVACY_URL"
@@ -364,6 +444,10 @@ npx vitest run                # suite green
 
 **Manual gates that no script covers:**
 
+- [ ] Cold-launched the Release build 5× (not Debug) — no crash, especially after adding a native dependency
+- [ ] Grepped the full route table (not just tab-bar/stack entries currently linked) for the bug class being closed
+- [ ] Audited App Store Connect metadata (IAP localizations, description, review notes) directly — a clean repo does not clear a metadata-sourced rejection
+- [ ] Every closed finding has a static regression test, not just a manual confirmation
 - [ ] Physical iPad, release/TestFlight build: login with **every** provider, session survives cold start
 - [ ] Physical iPad sandbox: monthly **and** annual purchase each unlock premium **without restart**
 - [ ] Paid Applications Agreement is `Active`
@@ -375,4 +459,5 @@ npx vitest run                # suite green
 - [ ] Screenshots captured from the candidate build, audited slot-by-slot in **View All Sizes in Media Manager**, all locales
 - [ ] Build number is higher than the last uploaded build (verified via API)
 - [ ] The fix commit is an ancestor of the submitted build's revision
+- [ ] All five pipeline states verified independently (build finished, submit processed, TestFlight Ready to Submit, build attached to the version, Update Review submitted) — not assumed from the first
 - [ ] Reviewer response drafted; **stop and get owner confirmation before `Update Review`**

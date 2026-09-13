@@ -126,8 +126,12 @@ A run can only return **GO** when **all** hold:
 - [ ] Lockfile is in sync with the manifest and was regenerated on the CI Node major; `npm ci` is expected to pass
 - [ ] Build number is monotonic, single-use, and higher than the last uploaded build, verified through the App Store Connect API
 - [ ] The fix commit is an ancestor of the revision included in the candidate build
-- [ ] Four pipeline states are independently verified: cloud build finished, submit processed, build attached to the App Store version, and `Update Review`
+- [ ] Five pipeline states are independently verified: cloud build finished, submit processed, TestFlight Ready to Submit, build attached to the App Store version, and `Update Review`
 - [ ] The workflow stops before `Update Review` and waits for explicit account-owner confirmation
+- [ ] No `accessibilityRole="button"` element without a matching `onPress` (BLOCKER — this reliably triggers a 2.1(a) rejection)
+- [ ] No top-level import of a recently added native package without confirming it is import-time-safe (crash-on-launch risk; cold-launch a **Release** build 5× to check)
+- [ ] Every closed App Review finding has a corresponding static regression test — a finding without one comes back
+- [ ] Rejection text was cross-checked against **current** code and, where relevant, App Store Connect metadata (IAP localizations, description, review notes) — not assumed to be a code-only fix
 
 Any failed gate → at least `GO_WITH_WARNINGS`. Failed **security/legal** gates (secrets, gambling wording, missing account deletion) → `NO_GO`.
 
@@ -152,6 +156,8 @@ eas submit --platform ios --profile production --latest
 node plugins/apple-store-release-agent/scripts/validate-ios-release.mjs --project . --strict
 node plugins/apple-store-release-agent/scripts/validate-revenuecat-iap.mjs --project . --strict
 node plugins/apple-store-release-agent/scripts/validate-privacy-readiness.mjs --project . --strict
+node plugins/apple-store-release-agent/scripts/validate-static-native-imports.mjs --project . --strict
+node plugins/apple-store-release-agent/scripts/validate-missing-handlers.mjs --project . --strict
 ```
 
 Mark every submit/pay/publish line with `# REQUIRES EXPLICIT APPROVAL`.
@@ -206,6 +212,8 @@ Located in `scripts/`. Run them; collect JSON; map findings to severities. All a
 | `validate-no-native-alerts.mjs` | `Alert.alert` / `Alert.prompt` usages with file:line, suggests confirmation-sheet/snackbar abstraction |
 | `validate-revenuecat-iap.mjs` | public RC envs, product references, iOS product consistency, restore-purchases heuristic, paywall fallback risk |
 | `validate-privacy-readiness.mjs` | privacy policy + terms links, SDK data collection map, permission usage, suggested App Privacy labels (suggestion only — never auto-declare) |
+| `validate-static-native-imports.mjs` | top-of-file imports of `expo-*`/`react-native-*` packages — a broken native link on a top-level import crashes on launch before the root component mounts and before any boot-time try/catch runs; heuristic, confirm against the package's actual add date |
+| `validate-missing-handlers.mjs` | `accessibilityRole="button"` elements with no `onPress` in the surrounding block (BLOCKER — guaranteed 2.1(a) rejection), plus files with 2+ `confirmAction()` calls (nested confirmation sheets that race each other's dismiss animation, mainly on iPad) |
 
 Scripts **fail safe**: on a non-Expo repo they emit `INFO`/`WARNING` and exit 0 unless `--strict`.
 
@@ -218,6 +226,7 @@ Scripts **fail safe**: on a non-Expo repo they emit `INFO`/`WARNING` and exit 0 
 - Require `eas.json` with `production` build + submit profiles.
 - Verify `EXPO_PUBLIC_*` public envs are intentional; flag mock flags for prod.
 - Suggest `expo prebuild --clean` discipline and a version-bump check.
+- Flag top-level imports of recently added native packages (`expo-*`, `react-native-*`) — `requireNativeModule()` runs at Metro import-time, before the root component mounts, so a broken native link crashes on launch with no JS stack trace. Cold-launch a **Release** build 5× before every submission; this does not reproduce in Debug/dev-client builds.
 
 ### 12.2 Firebase
 - Detect `@react-native-firebase/*` or `expo-*` Firebase packages.

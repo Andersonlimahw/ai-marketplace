@@ -184,6 +184,8 @@ Treat as **HIGH** risk (forces NO_GO unless resolved):
 - Target SDK below the current Play requirement.
 - Mock mode left on in a release build.
 - `versionCode` not incremented (would block upload).
+- A recently added native package (`expo-*`/`react-native-*`) imported at top-of-file: Android has the same import-time native-module-init failure mode as iOS — a broken native link crashes on launch before the root component mounts, and it will not reproduce in a debug build. Cold-launch a release build 5× when a native dependency was added.
+- An `accessibilityRole="button"` element (or equivalent Android interactive role) with no press handler: same cross-platform bug as the iOS 2.1(a) dead-button rejection — a styled, accessible-looking element that does nothing fails review on either store.
 
 ## Presets
 
